@@ -132,7 +132,7 @@
     .profile {
       min-height: 82px;
       display: grid;
-      grid-template-columns: 50px 1fr;
+      grid-template-columns: 64px 1fr;
       align-items: center;
       gap: 12px;
       padding: 10px;
@@ -140,7 +140,7 @@
       border-radius: 8px;
       background: var(--panel);
     }
-    .profile canvas { width: 50px; border-radius: 5px; }
+    .profile canvas { width: 64px; border-radius: 5px; }
     .profile-name { font-weight: 750; }
     .profile-role { line-height: 1.25; }
     .profile-focus { color: var(--muted); font-size: .875rem; }
@@ -231,7 +231,7 @@
           </div>
           <div class="roster" role="group" aria-label="Office team"></div>
           <div class="profile" aria-live="polite" aria-atomic="true">
-            <canvas id="pixel-office-portrait" width="32" height="32" aria-hidden="true"></canvas>
+            <canvas id="pixel-office-portrait" width="40" height="40" aria-hidden="true"></canvas>
             <div>
               <p class="profile-name"></p>
               <p class="profile-role"></p>
@@ -290,15 +290,55 @@
   };
   const team = [
     { name: 'Harold', role: 'System & Apps Administrator', focus: 'Cybersecurity · Team Lead',
-      x: 71, y: 97, color: '#86ebc3', skin: '#c18c67', hair: '#242230', accessory: 'glasses' },
+      x: 71, y: 97, color: '#86ebc3', face: {
+        tones: ['#be8467', '#e8ad8d', '#f5c3a1'],
+        rows: [
+          '.....OOOOOOO.....', '...OOHHHHHHHOO...', '..OHHhhhHHHHHHO..',
+          '..OHHHHHHHHHHHO..', '.OHHHssHHsHHHHHO.', '.OHHssSSSSssHHHO.',
+          '.OHHssSSSSSssHHO.', '.OdHsBBsssBBsHdO.', '.OdHsEsssssEsHdO.',
+          '.OdsSSSsnSSSsdO..', '..OdsLSSnSSLsdO..', '..OdsSssssSsdO...',
+          '...OdsMWWMMdO....', '....OdsWWsdO.....', '.....OddddO......',
+          '......OOOO.......'
+        ]
+      } },
     { name: 'Jerry', role: 'Web App Developer', focus: 'Developer',
-      x: 177, y: 97, color: '#cfa6ff', skin: '#e0ad7e', hair: '#38283a', accessory: 'fringe' },
+      x: 177, y: 97, color: '#cfa6ff', face: {
+        tones: ['#ad7356', '#da9d79', '#efb891'],
+        rows: [
+          '....OOOOOOO......', '...OHHhhhHHOO....', '..OHHhhHHHHHHO...',
+          '.OHHhHHHHHHHHHO..', '.OHHHHssHHHHHHO..', '.OHHssSSSssHHHO..',
+          '.OdHsSSSSSSsHdO..', '.OdHBBSssBBsHdO..', '.OdsEsSSSEsSsdO..',
+          '.OdsLSSnSSSLsdO..', '..OsLSSnSSSLsO...', '..OdSSsnsSSsdO...',
+          '...OdSSmMssdO....', '...OdSSSSssdO....', '....OddddddO.....',
+          '.....OOOOOO......'
+        ]
+      } },
     { name: 'Marlon', role: 'Web & Systems Administrator', focus: 'Developer',
-      x: 282, y: 97, color: '#81d8ff', skin: '#b67d58', hair: '#262032', accessory: 'glasses' },
+      x: 282, y: 97, color: '#81d8ff', face: {
+        tones: ['#9b604e', '#d89773', '#eeb48c'],
+        rows: [
+          '.....OOOOOO......', '...OOHHHHHHO.....', '..OHHhHHhhhHO....',
+          '.OHHhHshhHHHHO...', '.OHHHssSHhHHHHO..', '.OHHsSSSSSHHHHO..',
+          '.OdHsSSSSssHHHO..', '.OdHBBSssBBsHdO..', '.OdHsEsSSsEsHdO..',
+          '..OdsSSnSSSsdO...', '..OdsLSnSSLsdO...', '...OdsFFFFsdO....',
+          '...OdsMWWMdO.....', '....OdsFFsdO.....', '.....OddddO......',
+          '......OOOO.......'
+        ]
+      } },
     { name: 'JR', role: 'Computer Technician', focus: 'Tech Support',
-      x: 98, y: 183, color: '#ffc181', skin: '#d99d74', hair: '#322333', accessory: 'cap' },
+      x: 98, y: 183, color: '#ffc181', face: {
+        tones: ['#a86954', '#d89b7e', '#ecae8b'],
+        rows: [
+          '.....OOOOOO......', '...OOHHHHHHOO....', '..OHHhhHHHHHHO...',
+          '..OHHHsssHHHHO...', '..OHssSSSSsHHO...', '.OdHsSSSSSSsHdO..',
+          '.OdHsSSSSSSsHdO..', '.OdsBBssssBBsdO..', '.OdsEsSSSsEsdO...',
+          '.OdsLSSnnSSLsdO..', '..OdsSSnnSSsdO...', '..OdSSSssSSdO....',
+          '...OdsmmmssdO....', '...OdsSSSssdO....', '....OddddddO.....',
+          '.....OOOOOO......'
+        ]
+      } },
     { name: 'Flong', role: 'Network Administrator', focus: 'Network Support',
-      x: 260, y: 183, color: '#fff18a', skin: '#b67b5d', hair: '#29212b', accessory: 'headset' }
+      x: 260, y: 183, color: '#fff18a' }
   ];
   const walks = [
     [[0, 0], [0, 25], [25, 25], [20, 10], [0, 0]],
@@ -317,6 +357,44 @@
     ctx.fillRect(x, y, w, h);
   }
 
+  function makeFace(face) {
+    const [shadow, skin, light] = face.tones;
+    const colors = {
+      O: '#151724', H: '#191b24', h: '#39414b',
+      s: shadow, d: shadow, S: skin, L: light,
+      B: '#4d3030', E: '#222028', n: shadow,
+      M: '#713e3c', m: '#94584f', W: '#fff1dc', F: '#4b302d'
+    };
+    const image = document.createElement('canvas');
+    image.width = 17;
+    image.height = face.rows.length;
+    const art = image.getContext('2d');
+    face.rows.forEach((row, y) => {
+      Array.from(row).forEach((key, x) => {
+        if (colors[key]) box(art, x, y, 1, 1, colors[key]);
+      });
+    });
+    return image;
+  }
+
+  const faces = new Map(team.filter(({ face }) => face).map((member) => [member, makeFace(member.face)]));
+
+  function drawFace(ctx, x, y, member) {
+    const face = faces.get(member);
+    if (face) {
+      ctx.drawImage(face, x - 8, y - 8);
+      return;
+    }
+    box(ctx, x - 6, y - 6, 13, 15, '#141824');
+    box(ctx, x - 5, y - 4, 11, 12, '#b67b5d');
+    box(ctx, x - 5, y - 5, 11, 4, '#29212b');
+    box(ctx, x - 5, y - 2, 2, 4, '#29212b');
+    box(ctx, x - 2, y + 2, 1, 2, '#252437');
+    box(ctx, x + 3, y + 2, 1, 2, '#252437');
+    box(ctx, x - 7, y - 5, 14, 2, '#56638d');
+    box(ctx, x + 5, y - 2, 3, 7, '#56638d');
+  }
+
   function sprite(ctx, x, y, member, stride = 0) {
     box(ctx, x - 10, y + 19, 21, 3, '#12202d');
     y -= Math.abs(stride);
@@ -325,25 +403,20 @@
     box(ctx, x - 4, y + 16, 8, 5, '#23314f');
     box(ctx, x - 5 - stride, y + 20 + stride, 4, 2, '#101520');
     box(ctx, x + 2 + stride, y + 20 - stride, 4, 2, '#101520');
-    box(ctx, x - 6, y - 6, 13, 15, '#141824');
-    box(ctx, x - 5, y - 4, 11, 12, member.skin);
-    box(ctx, x - 5, y - 5, 11, 4, member.hair);
-    box(ctx, x - 5, y - 2, 2, 4, member.hair);
-    box(ctx, x - 2, y + 2, 1, 2, '#252437');
-    box(ctx, x + 3, y + 2, 1, 2, '#252437');
-    if (member.accessory === 'glasses') {
-      box(ctx, x - 4, y + 1, 9, 1, '#273047');
-      box(ctx, x - 4, y + 2, 1, 2, '#273047');
-      box(ctx, x + 4, y + 2, 1, 2, '#273047');
-    } else if (member.accessory === 'fringe') {
-      box(ctx, x - 2, y - 2, 6, 2, member.hair);
-    } else if (member.accessory === 'cap') {
-      box(ctx, x - 6, y - 6, 12, 5, '#34547e');
-      box(ctx, x - 2, y - 2, 11, 2, '#466fa0');
-    } else if (member.accessory === 'headset') {
-      box(ctx, x - 7, y - 5, 14, 2, '#56638d');
-      box(ctx, x + 5, y - 2, 3, 7, '#56638d');
-    }
+    drawFace(ctx, x, y, member);
+  }
+
+  function drawPortrait(member) {
+    const { width, height } = portrait.canvas;
+    box(portrait, 0, 0, width, height, '#23394e');
+    box(portrait, 0, height - 2, width, 2, member.color);
+    portrait.imageSmoothingEnabled = false;
+    portrait.save();
+    portrait.scale(2, 2);
+    box(portrait, 2, 17, 16, 2, member.color);
+    box(portrait, 7, 16, 6, 3, '#edf4ff');
+    drawFace(portrait, 10, 9, member);
+    portrait.restore();
   }
 
   function windowPane(x) {
@@ -516,9 +589,7 @@
     profile.name.textContent = member.name;
     profile.role.textContent = member.role;
     profile.focus.textContent = member.focus;
-    box(portrait, 0, 0, 32, 32, '#23394e');
-    box(portrait, 0, 29, 32, 3, member.color);
-    sprite(portrait, 16, 9, member);
+    drawPortrait(member);
     drawOffice(false);
   }
 
