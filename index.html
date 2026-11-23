@@ -374,7 +374,17 @@
         ]
       } },
     { name: 'Flong', role: 'Network Administrator', focus: 'Network Support',
-      x: 260, y: 183, color: '#fff18a' }
+      x: 260, y: 183, color: '#fff18a', face: {
+        tones: ['#a46853', '#d59a79', '#ecb18e'],
+        rows: [
+          '.....OOOOOOO.....', '...OOHHHHHHHOO...', '..OHHhhhhHHHHHO..',
+          '.OHHhhHHHHHHHHO..', '.OHHHsssHHHHHHO..', '.OHHsSSSsssHHHO..',
+          '.OdHsSSSSSSsHdO..', '.OdsBBSSssBBsdO..', '.OdsEsSSSsEsSdO..',
+          '.OdsLSSnSSSLsdO..', '..OdsSSnnSSsdO...', '..OdSSLssLsdO....',
+          '...OdsMMMMsdO....', '...OdsSmmssdO....', '....OddddddO.....',
+          '.....OOOOOO......'
+        ]
+      } }
   ];
   const walks = [
     [[0, 0], [0, 12], [25, 12], [20, 6], [0, 0]],
@@ -413,22 +423,10 @@
     return image;
   }
 
-  const faces = new Map(team.filter(({ face }) => face).map((member) => [member, makeFace(member.face)]));
+  const faces = new Map(team.map((member) => [member, makeFace(member.face)]));
 
   function drawFace(ctx, x, y, member) {
-    const face = faces.get(member);
-    if (face) {
-      ctx.drawImage(face, x - 8, y - 8);
-      return;
-    }
-    box(ctx, x - 6, y - 6, 13, 15, '#141824');
-    box(ctx, x - 5, y - 4, 11, 12, '#b67b5d');
-    box(ctx, x - 5, y - 5, 11, 4, '#29212b');
-    box(ctx, x - 5, y - 2, 2, 4, '#29212b');
-    box(ctx, x - 2, y + 2, 1, 2, '#252437');
-    box(ctx, x + 3, y + 2, 1, 2, '#252437');
-    box(ctx, x - 7, y - 5, 14, 2, '#56638d');
-    box(ctx, x + 5, y - 2, 3, 7, '#56638d');
+    ctx.drawImage(faces.get(member), x - 8, y - 8);
   }
 
   function sprite(ctx, x, y, member, stride = 0) {
