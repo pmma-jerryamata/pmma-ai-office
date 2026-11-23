@@ -73,7 +73,15 @@
       background: radial-gradient(ellipse at 50% 35%, #16273f 0%, #0b1423 70%);
     }
     .office-inner { width: 100%; max-width: 1100px; }
-    .office-heading { margin-bottom: 12px; }
+    .office-heading {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 12px;
+      margin-bottom: 12px;
+    }
+    .office-heading button { font-size: .875rem; }
     .office-heading h2, .tasks h2 {
       font: 750 1.25rem/1.25 ui-monospace, monospace;
       color: var(--mint);
@@ -211,8 +219,11 @@
       <section class="office" aria-labelledby="floor-heading">
         <div id="pixel-it-office" class="office-inner">
           <div class="office-heading">
-            <h2 id="floor-heading">Office floor</h2>
-            <p>Select a teammate to see their role.</p>
+            <div>
+              <h2 id="floor-heading">Office floor</h2>
+              <p>Select a teammate to see their role.</p>
+            </div>
+            <button id="office-motion" type="button" hidden>Pause motion</button>
           </div>
           <div class="floor">
             <canvas id="pixel-office-floor" width="360" height="228" role="img"
@@ -265,7 +276,12 @@
   const office = document.getElementById('pixel-it-office');
   const floor = office.querySelector('.floor');
   const roster = office.querySelector('.roster');
-  const map = document.getElementById('pixel-office-floor').getContext('2d');
+  const floorCanvas = document.getElementById('pixel-office-floor');
+  const scene = floorCanvas.getContext('2d');
+  const room = document.createElement('canvas');
+  room.width = floorCanvas.width;
+  room.height = floorCanvas.height;
+  const map = room.getContext('2d');
   const portrait = document.getElementById('pixel-office-portrait').getContext('2d');
   const profile = {
     name: office.querySelector('.profile-name'),
@@ -284,20 +300,31 @@
     { name: 'Flong', role: 'Network Administrator', focus: 'Network Support',
       x: 260, y: 183, color: '#fff18a', skin: '#b67b5d', hair: '#29212b', accessory: 'headset' }
   ];
+  const walks = [
+    [[0, 0], [0, 25], [25, 25], [20, 10], [0, 0]],
+    [[0, 0], [0, 25], [-26, 25], [-20, 10], [0, 0]],
+    [[0, 0], [0, 25], [23, 25], [18, 9], [0, 0]],
+    [[0, 0], [0, 9], [27, 9], [23, 0], [0, 0]],
+    [[0, 0], [0, 9], [-20, 9], [-15, 0], [0, 0]]
+  ];
   const controls = [];
+  const stations = new Map();
+  let selected = team[0];
+  let elapsed = 0;
 
   function box(ctx, x, y, w, h, color) {
     ctx.fillStyle = color;
     ctx.fillRect(x, y, w, h);
   }
 
-  function sprite(ctx, x, y, member) {
+  function sprite(ctx, x, y, member, stride = 0) {
     box(ctx, x - 10, y + 19, 21, 3, '#12202d');
+    y -= Math.abs(stride);
     box(ctx, x - 8, y + 7, 17, 12, '#101520');
     box(ctx, x - 7, y + 8, 15, 8, member.color);
     box(ctx, x - 4, y + 16, 8, 5, '#23314f');
-    box(ctx, x - 5, y + 20, 4, 2, '#101520');
-    box(ctx, x + 2, y + 20, 4, 2, '#101520');
+    box(ctx, x - 5 - stride, y + 20 + stride, 4, 2, '#101520');
+    box(ctx, x + 2 + stride, y + 20 - stride, 4, 2, '#101520');
     box(ctx, x - 6, y - 6, 13, 15, '#141824');
     box(ctx, x - 5, y - 4, 11, 12, member.skin);
     box(ctx, x - 5, y - 5, 11, 4, member.hair);
@@ -381,7 +408,7 @@
     box(map, x + 1, y + 2, 7, 3, '#53a990');
   }
 
-  function drawOffice(selected) {
+  function drawRoom() {
     box(map, 0, 0, 360, 228, '#0b1320');
     box(map, 8, 8, 344, 48, '#344358');
     box(map, 8, 9, 344, 3, '#647387');
@@ -445,15 +472,44 @@
     box(map, 165, 218, 30, 4, '#162633');
     box(map, 171, 221, 18, 3, '#9bc7bc');
 
-    team.forEach((member) => {
+  }
+
+  function walkingPosition(member, index, animateStride) {
+    const walk = walks[index];
+    const cycle = (elapsed + index * 1950) % 10500;
+    const segmentDuration = 950;
+    const walkingTime = cycle - 2200;
+    if (walkingTime <= 0 || walkingTime >= (walk.length - 1) * segmentDuration) {
+      return { x: member.x, y: member.y, stride: 0 };
+    }
+    const segment = Math.floor(walkingTime / segmentDuration);
+    const progress = (walkingTime % segmentDuration) / segmentDuration;
+    const [fromX, fromY] = walk[segment];
+    const [toX, toY] = walk[segment + 1];
+    const step = Math.floor(walkingTime / 110) % 4;
+    return {
+      x: Math.round(member.x + fromX + (toX - fromX) * progress),
+      y: Math.round(member.y + fromY + (toY - fromY) * progress),
+      stride: animateStride ? [0, 1, 0, -1][step] : 0
+    };
+  }
+
+  function drawOffice(animateStride) {
+    scene.drawImage(room, 0, 0);
+    team.forEach((member, index) => {
+      const { x, y, stride } = elapsed ? walkingPosition(member, index, animateStride) : member;
       if (member === selected) {
-        box(map, member.x - 12, member.y + 20, 25, 3, member.color);
+        box(scene, x - 12, y + 20, 25, 3, member.color);
       }
-      sprite(map, member.x, member.y, member);
+      sprite(scene, x, y, member, stride);
+      const station = stations.get(member);
+      station.style.setProperty('--x', (x / room.width * 100) + '%');
+      station.style.setProperty('--y', ((y + 32) / room.height * 100) + '%');
     });
   }
 
   function select(member) {
+    selected = member;
     controls.forEach(({ button, owner }) => {
       button.setAttribute('aria-pressed', String(member === owner));
     });
@@ -463,7 +519,7 @@
     box(portrait, 0, 0, 32, 32, '#23394e');
     box(portrait, 0, 29, 32, 3, member.color);
     sprite(portrait, 16, 9, member);
-    drawOffice(member);
+    drawOffice(false);
   }
 
   function addControl(member, parent, isStation) {
@@ -472,8 +528,7 @@
     button.style.setProperty('--station', member.color);
     if (isStation) {
       button.className = 'station';
-      button.style.setProperty('--x', (member.x / 360 * 100) + '%');
-      button.style.setProperty('--y', ((member.y + 32) / 228 * 100) + '%');
+      stations.set(member, button);
       const label = document.createElement('span');
       label.textContent = member.name;
       button.appendChild(label);
@@ -490,7 +545,45 @@
     addControl(member, floor, true);
     addControl(member, roster, false);
   });
+  drawRoom();
   select(team[0]);
+
+  function setupMotion() {
+    const button = document.getElementById('office-motion');
+    const preference = matchMedia('(prefers-reduced-motion: reduce)');
+    const interval = 1000 / 15;
+    let running = false;
+    let frame = 0;
+    let lastFrame = null;
+
+    function animate(now) {
+      lastFrame ??= now;
+      const gap = now - lastFrame;
+      if (gap >= interval) {
+        elapsed += Math.min(gap, 120);
+        lastFrame = now;
+        drawOffice(true);
+      }
+      frame = requestAnimationFrame(animate);
+    }
+
+    function setRunning(active) {
+      cancelAnimationFrame(frame);
+      lastFrame = null;
+      running = active;
+      button.textContent = active ? 'Pause motion' : 'Play motion';
+      if (active) {
+        frame = requestAnimationFrame(animate);
+      } else {
+        drawOffice(false);
+      }
+    }
+
+    button.hidden = false;
+    button.addEventListener('click', () => setRunning(!running));
+    preference.addEventListener('change', () => setRunning(!preference.matches));
+    setRunning(!preference.matches);
+  }
 
   function setupTasks() {
     const storageKey = 'pmma-it-office.tasks.v1';
@@ -634,6 +727,7 @@
     });
   }
 
+  setupMotion();
   setupTasks();
   setupFullscreen();
 })();
