@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The PMMA pixel-art IT office and personal task board.">
+  <title>PMMA IT Office</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #0a111e;
+      --panel: #101b2c;
+      --surface: #17263b;
+      --border: #2c3e56;
+      --text: #edf4ff;
+      --muted: #aabbd2;
+      --mint: #9df5d0;
+      font: 16px/1.45 system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--background); color: var(--text); }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    button, input, select {
+      min-height: 42px;
+      min-width: 0;
+      padding: 8px 11px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      background: var(--surface);
+    }
+    :is(button, input, select):focus-visible {
+      outline: 2px solid var(--mint);
+      outline-offset: 2px;
+    }
+    button:hover { border-color: var(--mint); }
+    [hidden] { display: none !important; }
+    h1, h2, p { margin: 0; }
+    .shell { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px clamp(14px, 3vw, 34px);
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+    }
+    .brand { display: flex; gap: 12px; align-items: center; }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 42px;
+      height: 42px;
+      border: 1px solid #446b70;
+      border-radius: 6px;
+      color: var(--mint);
+      background: #173039;
+      font: 800 20px/1 ui-monospace, monospace;
+    }
+    .brand p { color: var(--muted); font-size: .875rem; }
+    .brand h1 { font: 750 clamp(1.15rem, 2.5vw, 1.5rem)/1.2 ui-monospace, monospace; }
+    .topbar button { font-size: .875rem; white-space: nowrap; }
+    .workspace { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 365px); }
+    .office {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      padding: clamp(12px, 2.6vw, 34px);
+      background: radial-gradient(ellipse at 50% 35%, #16273f 0%, #0b1423 70%);
+    }
+    .office-inner { width: 100%; max-width: 1100px; }
+    .office-heading { margin-bottom: 12px; }
+    .office-heading h2, .tasks h2 {
+      font: 750 1.25rem/1.25 ui-monospace, monospace;
+      color: var(--mint);
+    }
+    .office-heading p, .task-note, .empty { margin-top: 4px; color: var(--muted); font-size: .875rem; }
+    .floor {
+      position: relative;
+      border: 1px solid #3a5870;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0b1320;
+      box-shadow: 0 14px 32px #03070e75;
+    }
+    canvas { display: block; image-rendering: pixelated; }
+    .floor canvas { width: 100%; height: auto; }
+    .station {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      transform: translate(-50%, -100%);
+      width: max(46px, 16%);
+      height: 23%;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+    .station:focus-visible { outline-offset: -3px; }
+    .station span {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 2px 7px;
+      border: 1px solid #536582;
+      border-radius: 3px;
+      background: #0f1927;
+      white-space: nowrap;
+      font: 700 clamp(.72rem, 1.5vw, .9rem)/1.3 ui-monospace, monospace;
+    }
+    .station:is(:hover, [aria-pressed="true"]) span,
+    .roster button:is(:hover, [aria-pressed="true"]) {
+      border-color: var(--station);
+      color: var(--station);
+    }
+    .roster { display: grid; grid-template-columns: repeat(auto-fit, minmax(66px, 1fr)); gap: 6px; margin: 12px 0; }
+    .roster button { font: 700 .875rem/1.15 ui-monospace, monospace; }
+    .profile {
+      min-height: 82px;
+      display: grid;
+      grid-template-columns: 50px 1fr;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    .profile canvas { width: 50px; border-radius: 5px; }
+    .profile-name { font-weight: 750; }
+    .profile-role { line-height: 1.25; }
+    .profile-focus { color: var(--muted); font-size: .875rem; }
+
+    .tasks {
+      align-self: stretch;
+      min-width: 0;
+      padding: 22px 17px;
+      border-left: 1px solid var(--border);
+      background: var(--panel);
+    }
+    .tasks-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .task-count { color: var(--muted); font: .875rem/1.3 ui-monospace, monospace; }
+    .task-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 10px 8px;
+      margin: 20px 0 15px;
+    }
+    .task-form label, .task-filter { display: grid; gap: 4px; font-size: .875rem; }
+    .task-form label:first-child { grid-column: 1 / -1; }
+    .task-form input, .task-form select, .task-filter select { width: 100%; }
+    .task-form button { font-weight: 750; background: var(--mint); border-color: var(--mint); color: #0b2b26; }
+    .task-form button:hover { background: #c3ffe5; }
+    .task-filter { border-top: 1px solid var(--border); padding-top: 13px; }
+    .task-list { display: grid; gap: 8px; padding: 0; margin: 12px 0 0; list-style: none; }
+    .task {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 8px;
+      padding: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .task-title { font-weight: 650; overflow-wrap: anywhere; }
+    .task-owner { font-size: .875rem; color: var(--muted); }
+    .task select { background: var(--panel); font-size: .875rem; }
+    .task-remove { justify-self: end; grid-column: 2; grid-row: 1; font-size: .875rem; }
+    .task select { grid-column: 1 / -1; grid-row: 2; }
+    .task-status-message { color: #ffcb91; margin-top: 8px; font-size: .875rem; }
+
+    @media (min-width: 851px) {
+      .shell { height: 100vh; height: 100dvh; }
+      .workspace { min-height: 0; }
+      .office, .tasks { overflow-y: auto; }
+      .office { align-items: safe center; }
+      .office-inner { max-width: min(1100px, max(420px, calc((100dvh - 365px) * 1.58))); }
+    }
+    @media (max-width: 850px) {
+      .workspace { grid-template-columns: minmax(0, 1fr); }
+      .tasks { border-left: 0; border-top: 1px solid var(--border); }
+    }
+    @media (max-width: 380px) {
+      .brand-mark { display: none; }
+      .topbar button { padding-inline: 7px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">&lt;/&gt;</span>
+        <div>
+          <h1>PMMA IT Office</h1>
+          <p>Web development &amp; IT operations</p>
+        </div>
+      </div>
+      <button id="fullscreen" type="button" hidden>Full screen</button>
+    </header>
+
+    <main class="workspace">
+      <section class="office" aria-labelledby="floor-heading">
+        <div id="pixel-it-office" class="office-inner">
+          <div class="office-heading">
+            <h2 id="floor-heading">Office floor</h2>
+            <p>Select a teammate to see their role.</p>
+          </div>
+          <div class="floor">
+            <canvas id="pixel-office-floor" width="360" height="228" role="img"
+              aria-label="Pixel-art IT office with a cybersecurity desk, two development desks, a repair bench, and a network lab"></canvas>
+          </div>
+          <div class="roster" role="group" aria-label="Office team"></div>
+          <div class="profile" aria-live="polite" aria-atomic="true">
+            <canvas id="pixel-office-portrait" width="32" height="32" aria-hidden="true"></canvas>
+            <div>
+              <p class="profile-name"></p>
+              <p class="profile-role"></p>
+              <p class="profile-focus"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="tasks" aria-labelledby="tasks-heading">
+        <div class="tasks-heading">
+          <h2 id="tasks-heading">Tasks</h2>
+          <p id="task-count" class="task-count" aria-live="polite"></p>
+        </div>
+        <p class="task-note">Tasks are saved in this browser.</p>
+        <form id="task-form" class="task-form">
+          <label>Task
+            <input id="task-title" maxlength="120" required placeholder="What needs doing?">
+          </label>
+          <label>Assignee
+            <select id="task-owner"></select>
+          </label>
+          <button type="submit">Add task</button>
+        </form>
+        <label class="task-filter">Show tasks
+          <select id="task-filter">
+            <option value="all">All statuses</option>
+            <option value="todo">To do</option>
+            <option value="doing">In progress</option>
+            <option value="done">Done</option>
+          </select>
+        </label>
+        <p id="task-message" class="task-status-message" role="status" hidden></p>
+        <p id="task-empty" class="empty"></p>
+        <ul id="task-list" class="task-list"></ul>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+(() => {
+  const office = document.getElementById('pixel-it-office');
+  const floor = office.querySelector('.floor');
+  const roster = office.querySelector('.roster');
+  const map = document.getElementById('pixel-office-floor').getContext('2d');
+  const portrait = document.getElementById('pixel-office-portrait').getContext('2d');
+  const profile = {
+    name: office.querySelector('.profile-name'),
+    role: office.querySelector('.profile-role'),
+    focus: office.querySelector('.profile-focus')
+  };
+  const team = [
+    { name: 'Harold', role: 'System & Apps Administrator', focus: 'Cybersecurity · Team Lead',
+      x: 71, y: 97, color: '#86ebc3', skin: '#c18c67', hair: '#242230', accessory: 'glasses' },
+    { name: 'Jerry', role: 'Web App Developer', focus: 'Developer',
+      x: 177, y: 97, color: '#cfa6ff', skin: '#e0ad7e', hair: '#38283a', accessory: 'fringe' },
+    { name: 'Marlon', role: 'Web & Systems Administrator', focus: 'Developer',
+      x: 282, y: 97, color: '#81d8ff', skin: '#b67d58', hair: '#262032', accessory: 'glasses' },
+    { name: 'JR', role: 'Computer Technician', focus: 'Tech Support',
+      x: 98, y: 183, color: '#ffc181', skin: '#d99d74', hair: '#322333', accessory: 'cap' },
+    { name: 'Flong', role: 'Network Administrator', focus: 'Network Support',
+      x: 260, y: 183, color: '#fff18a', skin: '#b67b5d', hair: '#29212b', accessory: 'headset' }
+  ];
+  const controls = [];
+
+  function box(ctx, x, y, w, h, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, w, h);
+  }
+
+  function sprite(ctx, x, y, member) {
+    box(ctx, x - 10, y + 19, 21, 3, '#12202d');
+    box(ctx, x - 8, y + 7, 17, 12, '#101520');
+    box(ctx, x - 7, y + 8, 15, 8, member.color);
+    box(ctx, x - 4, y + 16, 8, 5, '#23314f');
+    box(ctx, x - 5, y + 20, 4, 2, '#101520');
+    box(ctx, x + 2, y + 20, 4, 2, '#101520');
+    box(ctx, x - 6, y - 6, 13, 15, '#141824');
+    box(ctx, x - 5, y - 4, 11, 12, member.skin);
+    box(ctx, x - 5, y - 5, 11, 4, member.hair);
+    box(ctx, x - 5, y - 2, 2, 4, member.hair);
+    box(ctx, x - 2, y + 2, 1, 2, '#252437');
+    box(ctx, x + 3, y + 2, 1, 2, '#252437');
+    if (member.accessory === 'glasses') {
+      box(ctx, x - 4, y + 1, 9, 1, '#273047');
+      box(ctx, x - 4, y + 2, 1, 2, '#273047');
+      box(ctx, x + 4, y + 2, 1, 2, '#273047');
+    } else if (member.accessory === 'fringe') {
+      box(ctx, x - 2, y - 2, 6, 2, member.hair);
+    } else if (member.accessory === 'cap') {
+      box(ctx, x - 6, y - 6, 12, 5, '#34547e');
+      box(ctx, x - 2, y - 2, 11, 2, '#466fa0');
+    } else if (member.accessory === 'headset') {
+      box(ctx, x - 7, y - 5, 14, 2, '#56638d');
+      box(ctx, x + 5, y - 2, 3, 7, '#56638d');
+    }
+  }
+
+  function windowPane(x) {
+    box(map, x - 2, 15, 51, 30, '#101b2a');
+    box(map, x, 17, 47, 24, '#456482');
+    box(map, x + 2, 19, 43, 20, '#193453');
+    box(map, x + 4, 23, 7, 16, '#294863');
+    box(map, x + 13, 28, 8, 11, '#2e526d');
+    box(map, x + 30, 24, 9, 15, '#31526f');
+    box(map, x + 34, 27, 2, 2, '#f4c784');
+    box(map, x + 8, 29, 2, 2, '#7fbece');
+    box(map, x + 22, 19, 2, 20, '#456482');
+    box(map, x - 2, 41, 51, 3, '#7292a1');
+  }
+
+  function placard(x, y, label, color) {
+    box(map, x - 35, y - 7, 70, 10, '#172639');
+    map.fillStyle = color;
+    map.font = 'bold 6px monospace';
+    map.textAlign = 'center';
+    map.fillText(label, x, y);
+  }
+
+  function desk(x, y, width) {
+    box(map, x + 3, y + 3, width, 22, '#172b35');
+    box(map, x, y, width, 18, '#6b524e');
+    box(map, x, y, width, 3, '#b39173');
+    box(map, x + 2, y + 3, width - 4, 11, '#977261');
+    box(map, x, y + 15, width, 4, '#51404a');
+    box(map, x + 3, y + 18, 4, 6, '#423544');
+    box(map, x + width - 7, y + 18, 4, 6, '#423544');
+  }
+
+  function monitor(x, y, color) {
+    box(map, x, y, 23, 15, '#162033');
+    box(map, x + 2, y + 2, 19, 10, '#243e55');
+    box(map, x + 4, y + 4, 6, 1, color);
+    box(map, x + 7, y + 6, 10, 1, '#9cb9c9');
+    box(map, x + 7, y + 8, 7, 1, color);
+    box(map, x + 10, y + 14, 3, 3, '#273146');
+    box(map, x + 7, y + 17, 9, 1, '#172336');
+  }
+
+  function rack(x, y) {
+    box(map, x + 4, y + 4, 26, 35, '#142633');
+    box(map, x, y, 27, 35, '#172336');
+    box(map, x + 2, y + 2, 23, 2, '#647b99');
+    for (let row = 0; row < 4; row++) {
+      const top = y + 6 + row * 7;
+      box(map, x + 3, top, 21, 6, '#354a63');
+      box(map, x + 5, top + 2, 11, 1, '#172336');
+      box(map, x + 19, top + 2, 2, 2, row === 2 ? '#f9bf73' : '#8fe5ac');
+    }
+  }
+
+  function plant(x, y) {
+    box(map, x - 5, y + 8, 11, 6, '#b97762');
+    box(map, x - 6, y + 7, 13, 2, '#d19470');
+    box(map, x - 1, y - 6, 3, 14, '#62b69a');
+    box(map, x - 6, y - 2, 7, 4, '#3b887c');
+    box(map, x + 2, y - 4, 5, 4, '#80c7a0');
+    box(map, x + 1, y + 2, 7, 3, '#53a990');
+  }
+
+  function drawOffice(selected) {
+    box(map, 0, 0, 360, 228, '#0b1320');
+    box(map, 8, 8, 344, 48, '#344358');
+    box(map, 8, 9, 344, 3, '#647387');
+    box(map, 8, 47, 344, 8, '#24364a');
+    box(map, 8, 54, 344, 164, '#385665');
+    for (let y = 56; y < 216; y += 10) {
+      for (let x = 10; x < 350; x += 10) {
+        box(map, x, y, 9, 9, ((x + y) % 20 === 16) ? '#426171' : '#3d5b69');
+      }
+    }
+    box(map, 8, 54, 3, 164, '#263847');
+    box(map, 349, 54, 3, 164, '#263847');
+    box(map, 8, 218, 344, 4, '#647386');
+    box(map, 15, 130, 330, 15, '#466675');
+    box(map, 15, 130, 330, 1, '#718896');
+    box(map, 15, 144, 330, 1, '#2c4759');
+    windowPane(29);
+    windowPane(83);
+    windowPane(230);
+    windowPane(284);
+    box(map, 144, 17, 71, 26, '#102334');
+    box(map, 146, 19, 67, 22, '#223e55');
+    map.fillStyle = '#9df5d0';
+    map.font = 'bold 7px monospace';
+    map.textAlign = 'center';
+    map.fillText('IT OPERATIONS', 179, 29);
+    map.fillStyle = '#8ea9bd';
+    map.font = '5px monospace';
+    map.fillText('WEB & SYSTEMS', 179, 37);
+
+    const labels = ['CYBERSECURITY', 'WEB DEVELOPMENT', 'WEB & SYSTEMS'];
+    team.slice(0, 3).forEach((member, index) => {
+      const { x, color } = member;
+      placard(x, 63, labels[index], color);
+      box(map, x - 38, 74, 76, 47, '#355167');
+      desk(x - 33, 79, 66);
+      monitor(x - 26, 70, color);
+      monitor(x - 1, 70, color);
+      box(map, x + 24, 84, 5, 6, '#404052');
+      box(map, x + 25, 84, 2, 1, '#f5cb9e');
+    });
+
+    placard(98, 157, 'TECH SUPPORT', team[3].color);
+    placard(260, 157, 'NETWORK LAB', team[4].color);
+    box(map, 48, 165, 99, 44, '#41566a');
+    box(map, 211, 165, 97, 44, '#354f63');
+    desk(54, 167, 87);
+    monitor(60, 157, team[3].color);
+    box(map, 112, 171, 20, 9, '#263849');
+    box(map, 114, 173, 5, 4, '#d7a274');
+    box(map, 123, 173, 6, 2, '#a3bccb');
+    rack(217, 161);
+    rack(286, 161);
+    desk(250, 174, 28);
+    monitor(253, 163, team[4].color);
+    plant(21, 198);
+    plant(335, 198);
+    box(map, 161, 183, 34, 19, '#2c4655');
+    box(map, 164, 186, 28, 13, '#496575');
+    box(map, 176, 187, 5, 7, '#a6bac2');
+    box(map, 165, 218, 30, 4, '#162633');
+    box(map, 171, 221, 18, 3, '#9bc7bc');
+
+    team.forEach((member) => {
+      if (member === selected) {
+        box(map, member.x - 12, member.y + 20, 25, 3, member.color);
+      }
+      sprite(map, member.x, member.y, member);
+    });
+  }
+
+  function select(member) {
+    controls.forEach(({ button, owner }) => {
+      button.setAttribute('aria-pressed', String(member === owner));
+    });
+    profile.name.textContent = member.name;
+    profile.role.textContent = member.role;
+    profile.focus.textContent = member.focus;
+    box(portrait, 0, 0, 32, 32, '#23394e');
+    box(portrait, 0, 29, 32, 3, member.color);
+    sprite(portrait, 16, 9, member);
+    drawOffice(member);
+  }
+
+  function addControl(member, parent, isStation) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.style.setProperty('--station', member.color);
+    if (isStation) {
+      button.className = 'station';
+      button.style.setProperty('--x', (member.x / 360 * 100) + '%');
+      button.style.setProperty('--y', ((member.y + 32) / 228 * 100) + '%');
+      const label = document.createElement('span');
+      label.textContent = member.name;
+      button.appendChild(label);
+    } else {
+      button.textContent = member.name;
+    }
+    button.setAttribute('aria-label', member.name + ', ' + member.role);
+    button.addEventListener('click', () => select(member));
+    controls.push({ button, owner: member });
+    parent.appendChild(button);
+  }
+
+  team.forEach((member) => {
+    addControl(member, floor, true);
+    addControl(member, roster, false);
+  });
+  select(team[0]);
+
+  function setupTasks() {
+    const storageKey = 'pmma-it-office.tasks.v1';
+    const statuses = { todo: 'To do', doing: 'In progress', done: 'Done' };
+    const owners = new Set(['', ...team.map(({ name }) => name)]);
+    const form = document.getElementById('task-form');
+    const titleInput = document.getElementById('task-title');
+    const ownerInput = document.getElementById('task-owner');
+    const filter = document.getElementById('task-filter');
+    const count = document.getElementById('task-count');
+    const message = document.getElementById('task-message');
+    const empty = document.getElementById('task-empty');
+    const list = document.getElementById('task-list');
+
+    function report(messageText) {
+      message.textContent = messageText;
+      message.hidden = !messageText;
+    }
+
+    function option(value, label) {
+      const item = document.createElement('option');
+      item.value = value;
+      item.textContent = label;
+      return item;
+    }
+
+    function readTasks() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        if (!Array.isArray(saved)) return [];
+        return saved.filter((task) => task && typeof task.id === 'string' &&
+          typeof task.title === 'string' && task.title.length <= 120 &&
+          owners.has(task.owner) && Object.hasOwn(statuses, task.status));
+      } catch {
+        report('Saved tasks could not be loaded.');
+        return [];
+      }
+    }
+
+    ownerInput.append(option('', 'Unassigned'));
+    team.forEach(({ name }) => ownerInput.append(option(name, name)));
+    let tasks = readTasks();
+
+    function saveTasks() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(tasks));
+        report('');
+      } catch {
+        report('This browser could not save your changes. They will last until you close or reload the page.');
+      }
+    }
+
+    function renderTasks(focusId) {
+      const openCount = tasks.filter(({ status }) => status !== 'done').length;
+      count.textContent = openCount + ' open';
+      const visible = tasks.filter(({ status }) => filter.value === 'all' || filter.value === status);
+      empty.hidden = visible.length > 0;
+      empty.textContent = tasks.length ? 'No tasks match this filter.' : 'No tasks yet.';
+      list.replaceChildren();
+      let focusTarget;
+      visible.forEach((task) => {
+        const row = document.createElement('li');
+        row.className = 'task';
+        const title = document.createElement('p');
+        title.className = 'task-title';
+        title.textContent = task.title;
+        const owner = document.createElement('p');
+        owner.className = 'task-owner';
+        owner.textContent = task.owner || 'Unassigned';
+        const details = document.createElement('div');
+        details.append(title, owner);
+        const status = document.createElement('select');
+        status.setAttribute('aria-label', 'Status for ' + task.title);
+        Object.entries(statuses).forEach(([value, label]) => status.append(option(value, label)));
+        status.value = task.status;
+        status.addEventListener('change', () => {
+          task.status = status.value;
+          saveTasks();
+          renderTasks(task.id);
+        });
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'task-remove';
+        remove.textContent = 'Remove';
+        remove.setAttribute('aria-label', 'Remove ' + task.title);
+        remove.addEventListener('click', () => {
+          tasks = tasks.filter((item) => item.id !== task.id);
+          saveTasks();
+          renderTasks();
+          filter.focus();
+        });
+        row.append(details, status, remove);
+        list.append(row);
+        if (task.id === focusId) focusTarget = status;
+      });
+      if (focusId) (focusTarget || filter).focus({ preventScroll: true });
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const title = titleInput.value.trim();
+      if (!title) {
+        titleInput.setCustomValidity('Enter a task title.');
+        titleInput.reportValidity();
+        return;
+      }
+      tasks.unshift({
+        id: globalThis.crypto?.randomUUID?.() || Date.now() + '-' + Math.random().toString(36).slice(2),
+        title,
+        owner: ownerInput.value,
+        status: 'todo'
+      });
+      filter.value = 'all';
+      form.reset();
+      saveTasks();
+      renderTasks();
+      titleInput.focus();
+    });
+    titleInput.addEventListener('input', () => titleInput.setCustomValidity(''));
+    filter.addEventListener('change', () => renderTasks());
+    renderTasks();
+  }
+
+  function setupFullscreen() {
+    const button = document.getElementById('fullscreen');
+    if (!document.fullscreenEnabled || !document.documentElement.requestFullscreen) return;
+    button.hidden = false;
+    button.addEventListener('click', async () => {
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        } else {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch {
+        button.hidden = true;
+      }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      button.textContent = document.fullscreenElement ? 'Exit full screen' : 'Full screen';
+    });
+  }
+
+  setupTasks();
+  setupFullscreen();
+})();
+  </script>
+</body>
+</html>
