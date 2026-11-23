@@ -7,14 +7,17 @@
   <title>PMMA IT Office</title>
   <style>
     :root {
-      color-scheme: dark;
-      --background: #0a111e;
-      --panel: #101b2c;
-      --surface: #17263b;
-      --border: #2c3e56;
-      --text: #edf4ff;
-      --muted: #aabbd2;
-      --mint: #9df5d0;
+      color-scheme: light;
+      --background: #e9f4fb;
+      --panel: #fffdf9;
+      --surface: #f5f9fc;
+      --border: #b7c8d3;
+      --text: #243b4d;
+      --muted: #4c6274;
+      --blue: #195c83;
+      --blue-wash: #dcf0fa;
+      --brown: #754b32;
+      --wood-wash: #f4e5d4;
       font: 16px/1.45 system-ui, sans-serif;
     }
 
@@ -27,15 +30,15 @@
       min-width: 0;
       padding: 8px 11px;
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 8px;
       color: var(--text);
       background: var(--surface);
     }
     :is(button, input, select):focus-visible {
-      outline: 2px solid var(--mint);
+      outline: 2px solid var(--blue);
       outline-offset: 2px;
     }
-    button:hover { border-color: var(--mint); }
+    button:hover { border-color: var(--blue); background: var(--blue-wash); }
     [hidden] { display: none !important; }
     h1, h2, p { margin: 0; }
     .shell { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
@@ -44,8 +47,8 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 14px clamp(14px, 3vw, 34px);
-      border-bottom: 1px solid var(--border);
+      padding: 12px clamp(14px, 3vw, 34px);
+      border-bottom: 3px solid #d0a986;
       background: var(--panel);
     }
     .brand { display: flex; gap: 12px; align-items: center; }
@@ -54,14 +57,14 @@
       place-items: center;
       flex: 0 0 42px;
       height: 42px;
-      border: 1px solid #446b70;
-      border-radius: 6px;
-      color: var(--mint);
-      background: #173039;
+      border: 1px solid #bb8d6b;
+      border-radius: 10px;
+      color: var(--brown);
+      background: var(--wood-wash);
       font: 800 20px/1 ui-monospace, monospace;
     }
     .brand p { color: var(--muted); font-size: .875rem; }
-    .brand h1 { font: 750 clamp(1.15rem, 2.5vw, 1.5rem)/1.2 ui-monospace, monospace; }
+    .brand h1 { font: 800 clamp(1.25rem, 2.5vw, 1.65rem)/1.15 system-ui, sans-serif; letter-spacing: -.035em; }
     .topbar button { font-size: .875rem; white-space: nowrap; }
     .workspace { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 365px); }
     .office {
@@ -69,8 +72,9 @@
       align-items: center;
       justify-content: center;
       min-width: 0;
-      padding: clamp(12px, 2.6vw, 34px);
-      background: radial-gradient(ellipse at 50% 35%, #16273f 0%, #0b1423 70%);
+      padding: clamp(12px, 2vw, 26px);
+      padding-block: clamp(10px, 1.4vw, 22px);
+      background: radial-gradient(ellipse at 45% 22%, #f8fcff 0%, #dfedf7 85%);
     }
     .office-inner { width: 100%; max-width: 1100px; }
     .office-heading {
@@ -83,20 +87,37 @@
     }
     .office-heading button { font-size: .875rem; }
     .office-heading h2, .tasks h2 {
-      font: 750 1.25rem/1.25 ui-monospace, monospace;
-      color: var(--mint);
+      font: 800 clamp(1.4rem, 2.6vw, 1.8rem)/1.12 system-ui, sans-serif;
+      letter-spacing: -.04em;
+      color: var(--text);
     }
     .office-heading p, .task-note, .empty { margin-top: 4px; color: var(--muted); font-size: .875rem; }
     .floor {
       position: relative;
-      border: 1px solid #3a5870;
-      border-radius: 8px;
+      border: 2px solid #805838;
+      border-radius: 12px;
       overflow: hidden;
-      background: #0b1320;
-      box-shadow: 0 14px 32px #03070e75;
+      container-type: inline-size;
+      background: #e0b78c;
+      box-shadow: 0 9px 20px #4e53662e;
     }
     canvas { display: block; image-rendering: pixelated; }
     .floor canvas { width: 100%; height: auto; }
+    .zone-label {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      max-width: 28%;
+      transform: translate(-50%, -50%);
+      padding: 3px clamp(4px, 1.2cqw, 7px);
+      border: 1px solid #987358;
+      border-radius: 4px;
+      background: #fff5e6;
+      color: #513521;
+      font: 750 clamp(.75rem, 2.3cqw, .9rem)/1.15 system-ui, sans-serif;
+      white-space: nowrap;
+      pointer-events: none;
+    }
     .station {
       position: absolute;
       left: var(--x);
@@ -110,25 +131,28 @@
       background: transparent;
     }
     .station:focus-visible { outline-offset: -3px; }
+    .station:hover { background: transparent; }
     .station span {
       position: absolute;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      padding: 2px 7px;
-      border: 1px solid #536582;
-      border-radius: 3px;
-      background: #0f1927;
+      padding: 2px 8px;
+      border: 1px solid #678ca5;
+      border-radius: 5px;
+      color: var(--text);
+      background: #f8fcff;
       white-space: nowrap;
-      font: 700 clamp(.72rem, 1.5vw, .9rem)/1.3 ui-monospace, monospace;
+      font: 750 clamp(.75rem, 2.45cqw, 1rem)/1.25 system-ui, sans-serif;
     }
     .station:is(:hover, [aria-pressed="true"]) span,
     .roster button:is(:hover, [aria-pressed="true"]) {
-      border-color: var(--station);
-      color: var(--station);
+      border-color: var(--blue);
+      color: #164764;
+      background: var(--blue-wash);
     }
     .roster { display: grid; grid-template-columns: repeat(auto-fit, minmax(66px, 1fr)); gap: 6px; margin: 12px 0; }
-    .roster button { font: 700 .875rem/1.15 ui-monospace, monospace; }
+    .roster button { font: 750 .9375rem/1.15 system-ui, sans-serif; }
     .profile {
       min-height: 82px;
       display: grid;
@@ -137,23 +161,30 @@
       gap: 12px;
       padding: 10px;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-left: 4px solid #b8835e;
+      border-radius: 10px;
       background: var(--panel);
     }
     .profile canvas { width: 64px; border-radius: 5px; }
-    .profile-name { font-weight: 750; }
+    .profile-name { font-size: 1.0625rem; font-weight: 800; color: var(--brown); }
     .profile-role { line-height: 1.25; }
     .profile-focus { color: var(--muted); font-size: .875rem; }
 
     .tasks {
       align-self: stretch;
       min-width: 0;
-      padding: 22px 17px;
+      padding: 24px clamp(17px, 2vw, 25px);
       border-left: 1px solid var(--border);
       background: var(--panel);
     }
     .tasks-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-    .task-count { color: var(--muted); font: .875rem/1.3 ui-monospace, monospace; }
+    .task-count {
+      padding: 4px 9px;
+      border-radius: 6px;
+      background: var(--blue-wash);
+      color: #164764;
+      font: 700 .875rem/1.3 system-ui, sans-serif;
+    }
     .task-form {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -164,8 +195,8 @@
     .task-form label, .task-filter { display: grid; gap: 4px; font-size: .875rem; }
     .task-form label:first-child { grid-column: 1 / -1; }
     .task-form input, .task-form select, .task-filter select { width: 100%; }
-    .task-form button { font-weight: 750; background: var(--mint); border-color: var(--mint); color: #0b2b26; }
-    .task-form button:hover { background: #c3ffe5; }
+    .task-form button { font-weight: 750; background: var(--blue); border-color: var(--blue); color: #fff; }
+    .task-form button:hover { background: #124e70; }
     .task-filter { border-top: 1px solid var(--border); padding-top: 13px; }
     .task-list { display: grid; gap: 8px; padding: 0; margin: 12px 0 0; list-style: none; }
     .task {
@@ -183,14 +214,14 @@
     .task select { background: var(--panel); font-size: .875rem; }
     .task-remove { justify-self: end; grid-column: 2; grid-row: 1; font-size: .875rem; }
     .task select { grid-column: 1 / -1; grid-row: 2; }
-    .task-status-message { color: #ffcb91; margin-top: 8px; font-size: .875rem; }
+    .task-status-message { color: #8c3f20; margin-top: 8px; font-size: .875rem; }
 
     @media (min-width: 851px) {
       .shell { height: 100vh; height: 100dvh; }
       .workspace { min-height: 0; }
       .office, .tasks { overflow-y: auto; }
       .office { align-items: safe center; }
-      .office-inner { max-width: min(1100px, max(420px, calc((100dvh - 365px) * 1.58))); }
+      .office-inner { max-width: min(1180px, max(420px, calc((100dvh - 341px) * 1.58))); }
     }
     @media (max-width: 850px) {
       .workspace { grid-template-columns: minmax(0, 1fr); }
@@ -228,6 +259,11 @@
           <div class="floor">
             <canvas id="pixel-office-floor" width="360" height="228" role="img"
               aria-label="Pixel-art IT office with a cybersecurity desk, two development desks, a repair bench, and a network lab"></canvas>
+            <span class="zone-label" style="--x: 19.7%; --y: 27.6%">Security</span>
+            <span class="zone-label" style="--x: 49.2%; --y: 27.6%">Web dev</span>
+            <span class="zone-label" style="--x: 78.3%; --y: 27.6%">Systems</span>
+            <span class="zone-label" style="--x: 27.2%; --y: 67.5%">Tech support</span>
+            <span class="zone-label" style="--x: 72.2%; --y: 67.5%">Network lab</span>
           </div>
           <div class="roster" role="group" aria-label="Office team"></div>
           <div class="profile" aria-live="polite" aria-atomic="true">
@@ -341,9 +377,9 @@
       x: 260, y: 183, color: '#fff18a' }
   ];
   const walks = [
-    [[0, 0], [0, 25], [25, 25], [20, 10], [0, 0]],
-    [[0, 0], [0, 25], [-26, 25], [-20, 10], [0, 0]],
-    [[0, 0], [0, 25], [23, 25], [18, 9], [0, 0]],
+    [[0, 0], [0, 12], [25, 12], [20, 6], [0, 0]],
+    [[0, 0], [0, 12], [-26, 12], [-20, 6], [0, 0]],
+    [[0, 0], [0, 12], [23, 12], [18, 6], [0, 0]],
     [[0, 0], [0, 9], [27, 9], [23, 0], [0, 0]],
     [[0, 0], [0, 9], [-20, 9], [-15, 0], [0, 0]]
   ];
@@ -408,7 +444,7 @@
 
   function drawPortrait(member) {
     const { width, height } = portrait.canvas;
-    box(portrait, 0, 0, width, height, '#23394e');
+    box(portrait, 0, 0, width, height, '#cee7f6');
     box(portrait, 0, height - 2, width, 2, member.color);
     portrait.imageSmoothingEnabled = false;
     portrait.save();
@@ -420,34 +456,35 @@
   }
 
   function windowPane(x) {
-    box(map, x - 2, 15, 51, 30, '#101b2a');
-    box(map, x, 17, 47, 24, '#456482');
-    box(map, x + 2, 19, 43, 20, '#193453');
-    box(map, x + 4, 23, 7, 16, '#294863');
-    box(map, x + 13, 28, 8, 11, '#2e526d');
-    box(map, x + 30, 24, 9, 15, '#31526f');
-    box(map, x + 34, 27, 2, 2, '#f4c784');
-    box(map, x + 8, 29, 2, 2, '#7fbece');
-    box(map, x + 22, 19, 2, 20, '#456482');
-    box(map, x - 2, 41, 51, 3, '#7292a1');
+    box(map, x - 2, 15, 51, 30, '#779db6');
+    box(map, x, 16, 47, 25, '#fff2e1');
+    box(map, x + 2, 18, 43, 21, '#a7d9f2');
+    box(map, x + 5, 24, 12, 2, '#effaff');
+    box(map, x + 9, 22, 5, 2, '#effaff');
+    box(map, x + 32, 24, 9, 2, '#effaff');
+    box(map, x + 4, 34, 14, 5, '#74abc7');
+    box(map, x + 28, 31, 8, 8, '#83b6ce');
+    box(map, x + 36, 35, 8, 4, '#74abc7');
+    box(map, x + 22, 17, 2, 24, '#fff2e1');
+    box(map, x - 2, 41, 51, 3, '#bd8c66');
   }
 
-  function placard(x, y, label, color) {
-    box(map, x - 35, y - 7, 70, 10, '#172639');
-    map.fillStyle = color;
-    map.font = 'bold 6px monospace';
-    map.textAlign = 'center';
-    map.fillText(label, x, y);
+  function rug(x, y, width, height) {
+    box(map, x + 1, y + 2, width, height, '#ae8d74');
+    box(map, x, y, width, height, '#6595b2');
+    box(map, x + 2, y + 2, width - 4, height - 4, '#b7d9eb');
+    box(map, x + 4, y + 4, width - 8, height - 8, '#cce5f2');
   }
 
   function desk(x, y, width) {
-    box(map, x + 3, y + 3, width, 22, '#172b35');
-    box(map, x, y, width, 18, '#6b524e');
-    box(map, x, y, width, 3, '#b39173');
-    box(map, x + 2, y + 3, width - 4, 11, '#977261');
-    box(map, x, y + 15, width, 4, '#51404a');
-    box(map, x + 3, y + 18, 4, 6, '#423544');
-    box(map, x + width - 7, y + 18, 4, 6, '#423544');
+    box(map, x + 3, y + 3, width, 22, '#9bb5c1');
+    box(map, x, y, width, 18, '#784e36');
+    box(map, x + 1, y + 1, width - 2, 2, '#e5b68b');
+    box(map, x + 2, y + 3, width - 4, 11, '#bd855b');
+    box(map, x + 2, y + 11, width - 4, 1, '#d0986b');
+    box(map, x, y + 15, width, 4, '#916043');
+    box(map, x + 3, y + 18, 4, 6, '#64442f');
+    box(map, x + width - 7, y + 18, 4, 6, '#64442f');
   }
 
   function monitor(x, y, color) {
@@ -482,41 +519,35 @@
   }
 
   function drawRoom() {
-    box(map, 0, 0, 360, 228, '#0b1320');
-    box(map, 8, 8, 344, 48, '#344358');
-    box(map, 8, 9, 344, 3, '#647387');
-    box(map, 8, 47, 344, 8, '#24364a');
-    box(map, 8, 54, 344, 164, '#385665');
-    for (let y = 56; y < 216; y += 10) {
-      for (let x = 10; x < 350; x += 10) {
-        box(map, x, y, 9, 9, ((x + y) % 20 === 16) ? '#426171' : '#3d5b69');
-      }
+    box(map, 0, 0, 360, 228, '#e8c39d');
+    box(map, 7, 7, 346, 216, '#815a41');
+    box(map, 9, 9, 342, 46, '#b9daed');
+    box(map, 9, 9, 342, 3, '#e0f0f8');
+    box(map, 9, 48, 342, 7, '#a47554');
+    box(map, 9, 48, 342, 2, '#ead0ad');
+    for (let y = 55; y < 215; y += 8) {
+      const stagger = ((y - 55) / 8 % 2) * 22;
+      box(map, 10, y, 340, 8, stagger ? '#e3b98e' : '#edc99f');
+      box(map, 10, y + 7, 340, 1, '#c79a74');
+      for (let x = 32 + stagger; x < 350; x += 44) box(map, x, y, 1, 7, '#cd9f77');
     }
-    box(map, 8, 54, 3, 164, '#263847');
-    box(map, 349, 54, 3, 164, '#263847');
-    box(map, 8, 218, 344, 4, '#647386');
-    box(map, 15, 130, 330, 15, '#466675');
-    box(map, 15, 130, 330, 1, '#718896');
-    box(map, 15, 144, 330, 1, '#2c4759');
+    box(map, 10, 215, 340, 5, '#ad805f');
     windowPane(29);
     windowPane(83);
     windowPane(230);
     windowPane(284);
-    box(map, 144, 17, 71, 26, '#102334');
-    box(map, 146, 19, 67, 22, '#223e55');
-    map.fillStyle = '#9df5d0';
-    map.font = 'bold 7px monospace';
-    map.textAlign = 'center';
-    map.fillText('IT OPERATIONS', 179, 29);
-    map.fillStyle = '#8ea9bd';
-    map.font = '5px monospace';
-    map.fillText('WEB & SYSTEMS', 179, 37);
+    box(map, 144, 17, 71, 26, '#9c6e50');
+    box(map, 146, 19, 67, 22, '#fff8e9');
+    box(map, 152, 24, 25, 2, '#4b87aa');
+    box(map, 152, 29, 18, 2, '#a7cadc');
+    box(map, 152, 34, 22, 2, '#a7cadc');
+    box(map, 184, 23, 22, 2, '#d19a71');
+    box(map, 184, 29, 8, 7, '#78a9c5');
+    box(map, 196, 29, 10, 7, '#e1b48f');
 
-    const labels = ['CYBERSECURITY', 'WEB DEVELOPMENT', 'WEB & SYSTEMS'];
-    team.slice(0, 3).forEach((member, index) => {
+    team.slice(0, 3).forEach((member) => {
       const { x, color } = member;
-      placard(x, 63, labels[index], color);
-      box(map, x - 38, 74, 76, 47, '#355167');
+      rug(x - 41, 72, 82, 51);
       desk(x - 33, 79, 66);
       monitor(x - 26, 70, color);
       monitor(x - 1, 70, color);
@@ -524,10 +555,8 @@
       box(map, x + 25, 84, 2, 1, '#f5cb9e');
     });
 
-    placard(98, 157, 'TECH SUPPORT', team[3].color);
-    placard(260, 157, 'NETWORK LAB', team[4].color);
-    box(map, 48, 165, 99, 44, '#41566a');
-    box(map, 211, 165, 97, 44, '#354f63');
+    rug(47, 160, 101, 49);
+    rug(210, 160, 105, 49);
     desk(54, 167, 87);
     monitor(60, 157, team[3].color);
     box(map, 112, 171, 20, 9, '#263849');
@@ -539,12 +568,12 @@
     monitor(253, 163, team[4].color);
     plant(21, 198);
     plant(335, 198);
-    box(map, 161, 183, 34, 19, '#2c4655');
-    box(map, 164, 186, 28, 13, '#496575');
-    box(map, 176, 187, 5, 7, '#a6bac2');
-    box(map, 165, 218, 30, 4, '#162633');
-    box(map, 171, 221, 18, 3, '#9bc7bc');
-
+    box(map, 160, 181, 38, 21, '#765747');
+    box(map, 162, 183, 34, 15, '#77a9c5');
+    box(map, 164, 189, 13, 8, '#acd0e3');
+    box(map, 181, 189, 13, 8, '#acd0e3');
+    box(map, 165, 217, 30, 5, '#644635');
+    box(map, 171, 219, 18, 4, '#e5d8bd');
   }
 
   function walkingPosition(member, index, animateStride) {
@@ -572,7 +601,7 @@
     team.forEach((member, index) => {
       const { x, y, stride } = elapsed ? walkingPosition(member, index, animateStride) : member;
       if (member === selected) {
-        box(scene, x - 12, y + 20, 25, 3, member.color);
+        box(scene, x - 12, y + 20, 25, 3, '#236b91');
       }
       sprite(scene, x, y, member, stride);
       const station = stations.get(member);
@@ -596,7 +625,6 @@
   function addControl(member, parent, isStation) {
     const button = document.createElement('button');
     button.type = 'button';
-    button.style.setProperty('--station', member.color);
     if (isStation) {
       button.className = 'station';
       stations.set(member, button);
